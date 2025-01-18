@@ -2,9 +2,9 @@ import { redirect, RouteObject } from 'react-router-dom';
 import { Dashboard } from './dashboard/dashboard';
 import { Projeto } from './dashboard/nested/projetos/projetospage'; 
 import { Tarefas } from './dashboard/nested/tarefas/tarefaspage';
-import { Membros } from './dashboard/nested/membros/membros.page';
+import { Graficos } from './dashboard/nested/graficos/graficos.page';
 
-const routes : RouteObject[] = [
+const routes: RouteObject[] = [
     {
         path: "user/dashboard",
         element: <Dashboard />,
@@ -12,13 +12,12 @@ const routes : RouteObject[] = [
         children: [
             {
                 index: true,
-                loader: async () => redirect('/user/dashboard/projetos')
+                loader: async () => redirect('/user/dashboard/tarefas'), // Redireciona para "tarefas" ao acessar "user/dashboard"
             },
             {
                 path: "projetos",
                 element: <Projeto />,
                 id: "projetos"
-                
             },
             {
                 path: "tarefas",
@@ -26,12 +25,12 @@ const routes : RouteObject[] = [
                 id: "tarefas"
             },
             {
-                path: "membros",
-                element: <Membros />,
-                id: "membros"
+                path: "graficos",
+                element: <Graficos />,
+                id: "grafios"
             }
         ]
     }
-]
+];
 
 export default routes;

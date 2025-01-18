@@ -4,7 +4,7 @@ import { Menu } from './components/menu';
 import styled from 'styled-components';
 import { Projeto } from './nested/projetos/projetospage';
 import { Tarefas } from './nested/tarefas/tarefaspage';
-import { Membros } from './nested/membros/membros.page'; 
+import { Graficos } from './nested/graficos/graficos.page'; 
 
 
 export const Dashboard = () => {
@@ -19,7 +19,7 @@ export const Dashboard = () => {
                 <Route path="tarefas" element={<Tarefas />}/>
             </Routes>
             <Routes>
-                <Route path="membros" element={<Membros />}/>
+                <Route path="graficos" element={<Graficos />}/>
             </Routes>
         </DashboardStyles>
     )

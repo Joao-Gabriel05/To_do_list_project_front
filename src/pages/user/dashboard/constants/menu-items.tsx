@@ -12,8 +12,8 @@ export const menuItems = [
         href: '/user/dashboard/tarefas',
     },
     {
-        label: 'Membros',
+        label: 'Graficos',
         icon: <House />,
-        href: '/user/dashboard/membros',
+        href: '/user/dashboard/graficos',
     }
 ];

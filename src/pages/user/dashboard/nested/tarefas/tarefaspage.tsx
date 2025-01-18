@@ -178,15 +178,27 @@ export const Tarefas = () => {
 
     return (
         <TarefasStyles>
-            <h1 className="text-2xl font-bold mb-4">Tarefas</h1>
+         <div className="header-container flex items-center justify-between mb-6 px-6">
+            <div className="organizar-por">
+                <h3 className="font-semibold text-white mb-2">Organizar por</h3>
+                <div>
+                    <select
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value as 'due_date' | 'priority')}
+                        className="px-4 py-2  border rounded bg-white"
+                    >
+                        <option value="due_date">Data de Vencimento</option>
+                        <option value="priority">Prioridade</option>
+                    </select>
+                </div>
+            </div>
 
-            <div className="mb-6">
-                <h3 className="font-semibold mb-2">Filtros</h3>
+            <div className="filters-container">
                 <div className="flex space-x-4">
                     <select
                         value={filters.status}
                         onChange={e => setFilters({ ...filters, status: e.target.value })}
-                        className="p-2 border rounded"
+                        className="p-1 border rounded"
                     >
                         <option value="">Todos os Status</option>
                         <option value="não iniciado">Não Iniciado</option>
@@ -196,7 +208,7 @@ export const Tarefas = () => {
                     <select
                         value={filters.priority}
                         onChange={e => setFilters({ ...filters, priority: e.target.value })}
-                        className="p-2 border rounded"
+                        className="p-1 border rounded"
                     >
                         <option value="">Todas as Prioridades</option>
                         <option value="pouco importante">Pouco Importante</option>
@@ -207,38 +219,26 @@ export const Tarefas = () => {
                         type="date"
                         value={filters.due_date}
                         onChange={e => setFilters({ ...filters, due_date: e.target.value })}
-                        className="p-2 border rounded"
+                        className="p-1 border rounded"
                     />
                 </div>
             </div>
+        </div>
 
-            {/* Componente de "Organizar por" */}
-            <div className="mb-6">
-                <h3 className="font-semibold mb-2">Organizar por</h3>
-                <div className="flex space-x-4">
+        <h1 className="text-6xl font-bold text-white text-center mt-6">To-do List</h1>
+
+            {/* Botão Criar Nova Tarefa */}
+            {!showForm && (
+                <div className="flex justify-center mt-6">
                     <button
-                        onClick={() => setSortBy('due_date')}
-                        className={`px-4 py-2 border rounded ${sortBy === 'due_date' ? 'bg-blue-500 text-white' : 'bg-white'}`}
+                        onClick={() => setShowForm(true)}
+                        className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 w-full max-w-lg"
                     >
-                        Data de Vencimento
-                    </button>
-                    <button
-                        onClick={() => setSortBy('priority')}
-                        className={`px-4 py-2 border rounded ${sortBy === 'priority' ? 'bg-blue-500 text-white' : 'bg-white'}`}
-                    >
-                        Prioridade
+                        Criar Nova Tarefa
                     </button>
                 </div>
-            </div>
-
-            {!showForm && (
-                <button
-                    onClick={() => setShowForm(true)}
-                    className="mb-6 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                >
-                    Criar Nova Tarefa
-                </button>
             )}
+
 
             {showForm && (
                 <div className="mb-6 p-4 border border-gray-300 rounded-lg shadow-sm">
@@ -319,12 +319,12 @@ export const Tarefas = () => {
         // Determinar a cor do fundo dependendo do status
         const containerClass = tarefa.status === 'em progresso' 
             ? 'bg-white' // Cor de fundo branca para tarefas em progresso
-            : 'bg-gray-300'; // Cor de fundo cinza para tarefas não iniciadas ou finalizadas
+            : 'bg-gray-400'; // Cor de fundo cinza para tarefas não iniciadas ou finalizadas
 
         return (
             <li 
                 key={tarefa._id} 
-                className={`p-4 border rounded-md shadow-sm flex justify-between items-center ${containerClass}`}
+                className={`p-4  rounded-md shadow-sm flex justify-between items-center ${containerClass}`}
                 onClick={() => {
                     if (tarefa.status === 'não iniciado') {
                         handleStatusChange(tarefa._id, 'em progresso');
@@ -332,7 +332,7 @@ export const Tarefas = () => {
                 }}
             >
                 <div>
-                    <h3 className="font-semibold">{tarefa.title}</h3>
+                    <h1 className="font-semibold text-3xl">{tarefa.title}</h1>
                     <p> {tarefa.status}</p>
                     <p>
                         <span
@@ -340,9 +340,12 @@ export const Tarefas = () => {
                                 tarefa.priority === 'importante' ? 'bg-yellow-500' : 'bg-green-500'}`}
                         ></span>
                     </p>
-                    <p>
-                        {daysRemaining >= 0 ? `Faltam ${daysRemaining} dias para o vencimento` : `Atrasado em ${Math.abs(daysRemaining)} dias`}
+                    <p className={daysRemaining <= 0 ? "text-red-500" : ""}>
+                        {daysRemaining >= 0 
+                            ? `Faltam ${daysRemaining} dias para o vencimento` 
+                            : `Atrasado em ${Math.abs(daysRemaining)} dias`}
                     </p>
+
                     <p>Membros: {tarefa.members.join(', ')}</p>
                 </div>
                 <div className="flex items-center">
@@ -373,15 +376,23 @@ export const Tarefas = () => {
 };
 
 const TarefasStyles = styled.div`
-    padding: 20px;
-    max-width: 800px;
-    margin: 0 auto;
+    background-color: #1E40AF; /* Azul quente (mais saturado) */
 
-    .space-y-4 > * + * {
+    min-height: 100vh; /* Garantir que ocupe toda a altura da tela */
+
+    .space-y-4 {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start; /* Alinha o conteúdo para o topo */
+        padding: 20px;
+        max-width: 800px;
+        margin: 0 auto;
         margin-top: 1rem;
+        width: 100%; /* Garante que ocupe toda a largura possível */
     }
 
     button {
         transition: background-color 0.3s;
     }
 `;
+
