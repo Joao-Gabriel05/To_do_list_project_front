@@ -60,3 +60,58 @@ export async function postTaskRequest<T>(route: string, body: any): Promise<T> {
         throw error; // Repropaga o erro para o chamador lidar
     }
 }
+
+export async function deleteTaskRequest<T>(route: string, taskId: string): Promise<T> {
+    const { apiBaseUrl } = config;
+
+    const options: RequestInit = {
+        method: 'DELETE', // Método DELETE para remover a tarefa
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Inclui cookies na requisição
+    };
+
+    try {
+        const response = await fetch(apiBaseUrl + route + '/' + taskId, options);
+
+        // Valida se a resposta foi bem-sucedida
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status} - ${response.statusText}`);
+        }
+
+        // Retorna o JSON da resposta (caso necessário)
+        return await response.json();
+    } catch (error) {
+        console.error(`Failed to delete task with id ${taskId} from ${route}:`, error);
+        throw error; // Repropaga o erro para o chamador lidar
+    }
+}
+
+export async function editTaskRequest<T>(route: string, taskId: string, body: any): Promise<T> {
+    const { apiBaseUrl } = config;
+
+    const options: RequestInit = {
+        method: 'PUT', // Método PUT para editar a tarefa
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Inclui cookies na requisição
+        body: JSON.stringify(body), // Converte o corpo para JSON
+    };
+
+    try {
+        const response = await fetch(apiBaseUrl + route + '/' + taskId, options);
+
+        // Valida se a resposta foi bem-sucedida
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status} - ${response.statusText}`);
+        }
+
+        // Retorna o JSON da resposta (caso necessário)
+        return await response.json();
+    } catch (error) {
+        console.error(`Failed to edit task with id ${taskId} at ${route}:`, error);
+        throw error; // Repropaga o erro para o chamador lidar
+    }
+}
