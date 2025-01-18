@@ -21,7 +21,6 @@ export const Tarefas = () => {
         due_date: '',
         members: '',
     });
-    const [showForm, setShowForm] = useState(false);
 
     useEffect(() => {
         async function fetchTarefas() {
@@ -46,7 +45,6 @@ export const Tarefas = () => {
             setTarefas(prev => [...prev, createdTask]); // Adiciona a nova tarefa à lista
             toast.success('Tarefa criada com sucesso!');
             setNewTask({ title: '', status: 'pendente', priority: 'média', due_date: '', members: '' }); // Reseta o formulário
-            setShowForm(false); // Oculta o formulário após criar a tarefa
         } catch (error) {
             toast.error('Erro ao criar a tarefa');
             console.error('Erro ao criar a tarefa:', error);
@@ -57,67 +55,47 @@ export const Tarefas = () => {
         <TarefasStyles>
             <h1 className="text-2xl font-bold mb-4">Tarefas</h1>
 
-            {/* Botão para exibir o formulário */}
-            {!showForm && (
-                <button
-                    onClick={() => setShowForm(true)}
-                    className="mb-6 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                >
-                    Criar Nova Tarefa
-                </button>
-            )}
-
             {/* Formulário para criar uma nova tarefa */}
-            {showForm && (
-                <div className="mb-6 p-4 border border-gray-300 rounded-lg shadow-sm">
-                    <h2 className="text-xl font-semibold mb-4">Criar Nova Tarefa</h2>
-                    <div className="space-y-2">
-                        <input
-                            type="text"
-                            placeholder="Título"
-                            value={newTask.title}
-                            onChange={e => setNewTask({ ...newTask, title: e.target.value })}
-                            className="w-full p-2 border rounded"
-                        />
-                        <select
-                            value={newTask.priority}
-                            onChange={e => setNewTask({ ...newTask, priority: e.target.value })}
-                            className="w-full p-2 border rounded"
-                        >
-                            <option value="baixa">Baixa</option>
-                            <option value="média">Média</option>
-                            <option value="alta">Alta</option>
-                        </select>
-                        <input
-                            type="date"
-                            value={newTask.due_date}
-                            onChange={e => setNewTask({ ...newTask, due_date: e.target.value })}
-                            className="w-full p-2 border rounded"
-                        />
-                        <input
-                            type="text"
-                            placeholder="Membros (separados por vírgula)"
-                            value={newTask.members}
-                            onChange={e => setNewTask({ ...newTask, members: e.target.value })}
-                            className="w-full p-2 border rounded"
-                        />
-                    </div>
-                    <div className="mt-4 flex space-x-2">
-                        <button
-                            onClick={handleCreateTask}
-                            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                        >
-                            Criar Tarefa
-                        </button>
-                        <button
-                            onClick={() => setShowForm(false)}
-                            className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500"
-                        >
-                            Cancelar
-                        </button>
-                    </div>
+            <div className="mb-6 p-4 border border-gray-300 rounded-lg shadow-sm">
+                <h2 className="text-xl font-semibold mb-4">Criar Nova Tarefa</h2>
+                <div className="space-y-2">
+                    <input
+                        type="text"
+                        placeholder="Título"
+                        value={newTask.title}
+                        onChange={e => setNewTask({ ...newTask, title: e.target.value })}
+                        className="w-full p-2 border rounded"
+                    />
+                    <select
+                        value={newTask.priority}
+                        onChange={e => setNewTask({ ...newTask, priority: e.target.value })}
+                        className="w-full p-2 border rounded"
+                    >
+                        <option value="baixa">Baixa</option>
+                        <option value="média">Média</option>
+                        <option value="alta">Alta</option>
+                    </select>
+                    <input
+                        type="date"
+                        value={newTask.due_date}
+                        onChange={e => setNewTask({ ...newTask, due_date: e.target.value })}
+                        className="w-full p-2 border rounded"
+                    />
+                    <input
+                        type="text"
+                        placeholder="Membros (separados por vírgula)"
+                        value={newTask.members}
+                        onChange={e => setNewTask({ ...newTask, members: e.target.value })}
+                        className="w-full p-2 border rounded"
+                    />
                 </div>
-            )}
+                <button
+                    onClick={handleCreateTask}
+                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                    Criar Tarefa
+                </button>
+            </div>
 
             {/* Lista de tarefas */}
             {tarefas.length === 0 ? (
