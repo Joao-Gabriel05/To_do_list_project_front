@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import toast from 'react-hot-toast';
-import { getasksRequest, postTaskRequest, editTaskRequest } from './api/tarefas';
+import { getasksRequest, postTaskRequest, editTaskRequest, deleteTaskRequest } from './api/tarefas';
 
 interface Tarefa {
     _id: string;
@@ -28,7 +28,8 @@ export const Tarefas = () => {
         priority: '',
         due_date: '',
     });
-    const [sortBy, setSortBy] = useState<'due_date' | 'priority'>('due_date');  // Estado para controlar a ordenação
+    const [sortBy, setSortBy] = useState<'due_date' | 'priority'>('due_date');
+    const [menuVisible, setMenuVisible] = useState<string | null>(null); // Controle do menu contextual
 
     useEffect(() => {
         async function fetchTarefas() {
@@ -85,7 +86,7 @@ export const Tarefas = () => {
             const membersArray = members.split(',').map(member => member.trim());
     
             const taskToEdit = { 
-                _id: editingTaskId,   // Incluindo o _id, caso o back-end precise disso
+                _id: editingTaskId,  
                 title, 
                 status, 
                 priority, 
@@ -112,6 +113,23 @@ export const Tarefas = () => {
             }
         }
     };
+
+    const handleDeleteTask = async (taskId: string) => {
+        try {
+            const result = await deleteTaskRequest('/director/delete-task', taskId);
+            
+            if (result) {
+                const tarefas = await getasksRequest<Tarefa[]>('/director/get-task');
+                setTarefas(tarefas);
+                toast.success('Tarefa deletada com sucesso!');
+            } else {
+                toast.error('Erro ao deletar a tarefa');
+            }
+        } catch (error) {
+            toast.error('Erro ao deletar a tarefa');
+            console.error('Erro ao deletar a tarefa:', error);
+        }
+    };
     
 
     const handleTaskClick = (tarefa: Tarefa) => {
@@ -126,13 +144,7 @@ export const Tarefas = () => {
         setShowForm(true);  
     };
 
-    // Função para formatar a data no formato dd/mm/aaaa
-    const formatDate = (date: string) => {
-        const [year, month, day] = date.split('-');
-        return `${day}/${month}/${year}`;
-    };
 
-    // Função para filtrar as tarefas
     const filteredTarefas = tarefas.filter(tarefa => {
         const matchesStatus = filters.status ? tarefa.status === filters.status : true;
         const matchesPriority = filters.priority ? tarefa.priority === filters.priority : true;
@@ -141,7 +153,6 @@ export const Tarefas = () => {
         return matchesStatus && matchesPriority && matchesDueDate;
     });
 
-    // Função para ordenar as tarefas
     const sortedTarefas = filteredTarefas.sort((a, b) => {
         if (sortBy === 'due_date') {
             return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
@@ -150,11 +161,11 @@ export const Tarefas = () => {
             return priorities.indexOf(a.priority) - priorities.indexOf(b.priority);
         }
     });
-
     const handleStatusChange = async (taskId: string,status_atualizado:string) => {
         try {
             // Buscar a tarefa original
             const task = await getasksRequest<Tarefa>(`/director/get-task/${taskId}`);
+
             
             if (task) {
                 // Atualizar o status e manter os outros campos
@@ -178,7 +189,7 @@ export const Tarefas = () => {
 
     return (
         <TarefasStyles>
-         <div className="header-container flex items-center justify-between mb-6 px-6">
+         <div className="header-container flex items-center justify-between mb-6 px-6 py-3">
             <div className="organizar-por">
                 <h3 className="font-semibold text-white mb-2">Organizar por</h3>
                 <div>
@@ -194,6 +205,7 @@ export const Tarefas = () => {
             </div>
 
             <div className="filters-container">
+                <h3 className="font-semibold text-white mb-2">Filtros</h3>
                 <div className="flex space-x-4">
                     <select
                         value={filters.status}
@@ -242,7 +254,7 @@ export const Tarefas = () => {
 
             {showForm && (
                 <div className="mb-6 p-4 border border-gray-300 rounded-lg shadow-sm">
-                    <h2 className="text-xl font-semibold mb-4">
+                    <h2 className="text-xl text-white font-semibold mb-4">
                         {editingTaskId ? 'Editar Tarefa' : 'Criar Nova Tarefa'}
                     </h2>
                     <div className="space-y-2">
@@ -302,69 +314,117 @@ export const Tarefas = () => {
                 </div>
             )}
 
-<ul className="space-y-4">
-    {sortedTarefas.map((tarefa) => {
-        // Obter a data atual (em milissegundos desde a época Unix)
-        const today = new Date();
-        const todayInMs = today.getTime(); // Data atual em milissegundos
+        <ul className="space-y-4">
+        {sortedTarefas.map((tarefa) => {
+            const today = new Date();
+            const todayInMs = today.getTime();
+            const dueDate = new Date(tarefa.due_date);
+            const dueDateInMs = dueDate.getTime();
+            const timeDifference = dueDateInMs - todayInMs;
+            const daysRemaining = Math.ceil(timeDifference / (1000 * 3600 * 24));
+            const containerClass = tarefa.status === 'em progresso' 
+                ? 'bg-white' 
+                : 'bg-gray-400';
 
-        // Converter a due_date de string para milissegundos
-        const dueDate = new Date(tarefa.due_date);
-        const dueDateInMs = dueDate.getTime(); // Data de vencimento em milissegundos
+            const handleToggleMenu = (id: string | null) => {
+                setMenuVisible((prev) => (prev === id ? null : id));
+            };
 
-        // Calcular a diferença de dias
-        const timeDifference = dueDateInMs - todayInMs;
-        const daysRemaining = Math.ceil(timeDifference / (1000 * 3600 * 24)); // Convertendo de milissegundos para dias
-
-        // Determinar a cor do fundo dependendo do status
-        const containerClass = tarefa.status === 'em progresso' 
-            ? 'bg-white' // Cor de fundo branca para tarefas em progresso
-            : 'bg-gray-400'; // Cor de fundo cinza para tarefas não iniciadas ou finalizadas
-
-        return (
-            <li 
-                key={tarefa._id} 
-                className={`p-4  rounded-md shadow-sm flex justify-between items-center ${containerClass}`}
-                onClick={() => {
-                    if (tarefa.status === 'não iniciado') {
-                        handleStatusChange(tarefa._id, 'em progresso');
-                    }
-                }}
-            >
-                <div>
-                    <h1 className="font-semibold text-3xl">{tarefa.title}</h1>
-                    <p> {tarefa.status}</p>
-                    <p>
-                        <span
-                            className={`inline-block w-4 h-4 rounded-full mr-2 ${tarefa.priority === 'muito importante' ? 'bg-red-500' : 
-                                tarefa.priority === 'importante' ? 'bg-yellow-500' : 'bg-green-500'}`}
-                        ></span>
-                    </p>
-                    <p className={daysRemaining <= 0 ? "text-red-500" : ""}>
-                        {daysRemaining >= 0 
-                            ? `Faltam ${daysRemaining} dias para o vencimento` 
-                            : `Atrasado em ${Math.abs(daysRemaining)} dias`}
-                    </p>
-
-                    <p>Membros: {tarefa.members.join(', ')}</p>
-                </div>
-                <div className="flex items-center">
+    return (
+        <li 
+            key={tarefa._id} 
+            className={`p-4 rounded-md shadow-sm flex justify-between items-center ${containerClass}`}
+        >
+            <div>
+                <h1 className="font-bold text-3xl">{tarefa.title}</h1>
+                <p className="font-semibold">
+                {
+                    tarefa.status === 'não iniciado' ? 'A tarefa ainda não foi iniciada' :
+                    tarefa.status === 'em progresso' ? 'A tarefa está em processo' :
+                    tarefa.status === 'finalizado' ? 'A tarefa foi finalizada' :
+                    'Status desconhecido'
+                }
+                </p>
+                <p>
+                    <span
+                        className={`inline-block w-4 h-4 rounded-full mr-2 ${
+                            tarefa.priority === 'muito importante' ? 'bg-red-500' : 
+                            tarefa.priority === 'importante' ? 'bg-yellow-500' : 'bg-green-500'
+                        }`}
+                    ></span>
+                </p>
+                <p className={daysRemaining <= 0 ? "text-red-500" : ""}>
+                    {daysRemaining >= 0 
+                        ? `Faltam ${daysRemaining} dias para o vencimento` 
+                        : `Atrasado em ${Math.abs(daysRemaining)} dias`}
+                </p>
+                <p>Membros: {tarefa.members.join(', ')}</p>
+            </div>
+            <div className="flex items-center relative">
+            <div className="checkbox-container">
                     <input
                         type="checkbox"
                         checked={tarefa.status === 'finalizado'}
-                        onChange={() => handleStatusChange(tarefa._id, 'finalizado')}
-                        className="mr-4"
+                        onChange={() => {
+                            const newStatus = tarefa.status === 'finalizado' ? 'em progresso' : 'finalizado';
+                            handleStatusChange(tarefa._id, newStatus);
+                        }}
+                        id={`checkbox-${tarefa._id}`}
+                        className="checkbox-input"
                     />
-                    <button
-                        onClick={() => handleTaskClick(tarefa)}
-                        className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
-                    >
-                        Editar
-                    </button>
+                    <label htmlFor={`checkbox-${tarefa._id}`} className="checkbox-label"></label>
                 </div>
-            </li>
-        );
-    })}
+
+
+                {/* Botão de ações */}
+                <div className="relative">
+                    <button
+                        onClick={() => handleToggleMenu(tarefa._id)}
+                        className="p-2 bg-transparent text-black rounded hover:bg-gray-200"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={2}
+                            stroke="currentColor"
+                            className="w-7 h-7"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M6.75 12a.75.75 0 100-1.5.75.75 0 000 1.5zm5.25 0a.75.75 0 100-1.5.75.75 0 000 1.5zm5.25 0a.75.75 0 100-1.5.75.75 0 000 1.5z"
+                            />
+                        </svg>
+                    </button>
+                    {/* Menu de opções */}
+                    {menuVisible === tarefa._id && (
+                        <div className="absolute top-10 right-0 bg-white border rounded shadow-md z-10">
+                            <button
+                                onClick={() => {
+                                    handleTaskClick(tarefa);
+                                    handleToggleMenu(null);
+                                }}
+                                className="block px-4 py-2 text-left hover:bg-gray-100 w-full"
+                            >
+                                Editar
+                            </button>
+                            <button
+                                onClick={() => {
+                                    handleDeleteTask(tarefa._id);
+                                    handleToggleMenu(null);
+                                }}
+                                className="block px-4 py-2 text-left hover:bg-gray-100 w-full text-red-600"
+                            >
+                                Deletar
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </li>
+    );
+})}
 </ul>
 
 
@@ -394,5 +454,52 @@ const TarefasStyles = styled.div`
     button {
         transition: background-color 0.3s;
     }
+    .checkbox-container {
+        position: relative;
+        display: inline-block;
+    }
+    
+    .checkbox-input {
+        appearance: none; /* Remove o estilo padrão */
+        -webkit-appearance: none; /* Remove o estilo padrão no Safari */
+        width: 30px; /* Tamanho do checkbox */
+        height: 30px; /* Tamanho do checkbox */
+        border-radius: 50%; /* Tornar o checkbox redondo */
+        background-color: #f3f4f6; /* Cor de fundo */
+        border: 2px solid #34D399; /* Cor da borda */
+        position: relative;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .checkbox-input:checked {
+        background-color: #34D399; /* Cor verde quando selecionado */
+        border-color: #34D399; /* Cor da borda quando selecionado */
+    }
+    
+    .checkbox-input:checked::before {
+        content: ''; /* Insere o checkmark */
+        width: 10px;
+        height: 10px;
+        border: solid white;
+        border-width: 0 3px 3px 0;
+        transform: rotate(45deg);
+        position: absolute;
+    }
+    
+    .checkbox-label {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-radius: 50%; /* Tornar o label redondo também */
+        cursor: pointer;
+    }
+    
+    
 `;
 

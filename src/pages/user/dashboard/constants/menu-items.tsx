@@ -1,19 +1,15 @@
-import { House } from '@phosphor-icons/react';
+import { ChartBar,CalendarCheck} from '@phosphor-icons/react';
 
 export const menuItems = [
-    {
-        label: 'Projetos',
-        icon: <House />,
-        href: '/user/dashboard/projetos',
-    },
+
     {
         label: 'Tarefas',
-        icon: <House />,
+        icon: <CalendarCheck />,
         href: '/user/dashboard/tarefas',
     },
     {
         label: 'Graficos',
-        icon: <House />,
+        icon: <ChartBar />,
         href: '/user/dashboard/graficos',
     }
 ];
