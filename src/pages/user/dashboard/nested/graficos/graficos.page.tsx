@@ -31,14 +31,14 @@ export const Graficos = () => {
 
                 // Configuração dos dados do gráfico de status
                 setDadosTarefas({
-                    labels: ['Não Iniciado', 'Em Progresso', 'Finalizado'],
+                    labels: ['Pendente', 'Em Progresso', 'Finalizada'],
                     datasets: [
                         {
                             label: 'Quantidade de Tarefas por Status',
                             data: [
-                                contagemStatus['não iniciado'] || 0,
+                                contagemStatus['pendente'] || 0,
                                 contagemStatus['em progresso'] || 0,
-                                contagemStatus['finalizado'] || 0
+                                contagemStatus['finalizada'] || 0
                             ],
                             backgroundColor: ['#808080', '#4CAF50', '#2196F3'],  // Cores para as barras
                             borderColor: ['#808080', '#4CAF50', '#2196F3'],      // Cor da borda das barras

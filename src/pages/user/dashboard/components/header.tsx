@@ -20,7 +20,7 @@ export function Header() {
             return (
               <div key={index} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                 <BreadcrumbItem>
-                  <BreadcrumbLink href={match.pathname} style={{ fontWeight: "500" }}>
+                  <BreadcrumbLink href={match.pathname} style={{ fontWeight: "500",fontSize:'18px' }}>
                     {breadcrumbLabel}
                   </BreadcrumbLink>
                 </BreadcrumbItem>

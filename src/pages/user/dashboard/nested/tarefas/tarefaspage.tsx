@@ -5,8 +5,7 @@ import { getasksRequest, postTaskRequest, editTaskRequest, deleteTaskRequest } f
 
 interface Tarefa {
     _id: string;
-    status: "não iniciado" | "em progresso" | "finalizado";
-    members: string[];
+    status: "pendente" | "em progresso" | "finalizada";
     priority: "pouco importante" | "importante" | "muito importante";
     title: string;
     due_date: string;
@@ -16,10 +15,9 @@ export const Tarefas = () => {
     const [tarefas, setTarefas] = useState<Tarefa[]>([]);
     const [newTask, setNewTask] = useState({
         title: '',
-        status: 'não iniciado',
+        status: 'pendente',
         priority: 'pouco importante',
         due_date: '',
-        members: '',
     });
     const [showForm, setShowForm] = useState(false);
     const [editingTaskId, setEditingTaskId] = useState<string | null>(null);  
@@ -46,21 +44,19 @@ export const Tarefas = () => {
 
     const handleCreateTask = async () => {
         try {
-            const { title, status, priority, due_date, members } = newTask;
+            const { title, status, priority, due_date } = newTask;
 
-            if (!title || !status || !priority || !due_date || !members) {
+            if (!title || !status || !priority || !due_date) {
                 toast.error('Preencha todos os campos obrigatórios!');
                 return;
             }
 
-            const membersArray = members.split(',').map(member => member.trim());
 
             const taskToCreate = { 
                 title, 
                 status, 
                 priority, 
-                due_date, 
-                members: membersArray 
+                due_date
             };
 
             const createdTask = await postTaskRequest<Tarefa>('/director/create-task', taskToCreate);
@@ -69,7 +65,7 @@ export const Tarefas = () => {
                 const tarefas = await getasksRequest<Tarefa[]>('/director/get-task');
                 setTarefas(tarefas);
                 toast.success('Tarefa criada com sucesso!');
-                setNewTask({ title: '', status: 'não iniciado', priority: 'pouco importante', due_date: '', members: '' });
+                setNewTask({ title: '', status: 'pendente', priority: 'pouco importante', due_date: '' });
                 setShowForm(false);
             } else {
                 toast.error('Erro ao criar a tarefa');
@@ -82,8 +78,7 @@ export const Tarefas = () => {
 
     const handleEditTask = async () => {
         if (editingTaskId) {
-            const { title, status, priority, due_date, members } = newTask;
-            const membersArray = members.split(',').map(member => member.trim());
+            const { title, status, priority, due_date } = newTask;
     
             const taskToEdit = { 
                 _id: editingTaskId,  
@@ -91,7 +86,6 @@ export const Tarefas = () => {
                 status, 
                 priority, 
                 due_date, 
-                members: membersArray 
             };
     
             try {
@@ -101,7 +95,7 @@ export const Tarefas = () => {
                     const tarefas = await getasksRequest<Tarefa[]>('/director/get-task');
                     setTarefas(tarefas);
                     toast.success('Tarefa atualizada com sucesso!');
-                    setNewTask({ title: '', status: 'não iniciado', priority: 'pouco importante', due_date: '', members: '' });
+                    setNewTask({ title: '', status: 'pendente', priority: 'pouco importante', due_date: '' });
                     setShowForm(false);
                     setEditingTaskId(null); 
                 } else {
@@ -147,8 +141,7 @@ export const Tarefas = () => {
             title: tarefa.title,
             status: tarefa.status,
             priority: tarefa.priority,
-            due_date: tarefa.due_date,
-            members: tarefa.members.join(', ')  
+            due_date: tarefa.due_date
         });
         setShowForm(true);  
     };
@@ -195,55 +188,118 @@ export const Tarefas = () => {
             console.error('Erro ao atualizar o status da tarefa:', error);
         }
     };
+    
 
     return (
         <TarefasStyles>
          <div className="header-container flex items-center justify-between mb-6 px-6 py-3">
-            <div className="organizar-por">
-                <h3 className="font-semibold text-white mb-2">Organizar por</h3>
-                <div>
-                    <select
-                        value={sortBy}
-                        onChange={(e) => setSortBy(e.target.value as 'due_date' | 'priority')}
-                        className="px-4 py-2  border rounded bg-white"
+                <div className="organizar-por">
+            <div className="relative">
+                <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as 'due_date' | 'priority')}
+                    className="px-5 py-2 border rounded bg-white text-gray-700 appearance-none w-[90%] h-[80%]"
+                >
+                    <option value="" disabled selected>
+                        Organizar por
+                    </option>
+                    <option value="due_date">Prazo</option>
+                    <option value="priority">Prioridade</option>
+                </select>
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <svg
+                        className="w-5 h-5 text-gray-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
                     >
-                        <option value="due_date">Data de Vencimento</option>
-                        <option value="priority">Prioridade</option>
-                    </select>
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M19 9l-7 7-7-7"
+                        />
+                    </svg>
                 </div>
             </div>
+        </div>
 
-            <div className="filters-container">
-                <h3 className="font-semibold text-white mb-2">Filtros</h3>
-                <div className="flex space-x-4">
+
+                <div className="filters-container">
+            <div className="flex space-x-4">
+                <div className="relative">
                     <select
                         value={filters.status}
                         onChange={e => setFilters({ ...filters, status: e.target.value })}
-                        className="p-1 border rounded"
+                        className="px-4 py-2 text-sm border rounded bg-white text-gray-700 appearance-none w-[100%] h-[100%]"
                     >
-                        <option value="">Todos os Status</option>
-                        <option value="não iniciado">Não Iniciado</option>
+                        <option value="">Todos Status</option>
+                        <option value="pendente">Pendente</option>
                         <option value="em progresso">Em Progresso</option>
-                        <option value="finalizado">Finalizado</option>
+                        <option value="finalizada">Finalizada</option>
                     </select>
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-1 pointer-events-none">
+                        <svg
+                            className="w-5 h-5 text-gray-500"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M19 9l-7 7-7-7"
+                            />
+                        </svg>
+                    </div>
+                </div>
+
+                <div className="relative">
                     <select
                         value={filters.priority}
                         onChange={e => setFilters({ ...filters, priority: e.target.value })}
-                        className="p-1 border rounded"
+                        className="px-4 py-2 text-sm border rounded bg-white text-gray-700 appearance-none w-[100%] h-[100%]"
                     >
-                        <option value="">Todas as Prioridades</option>
+                        <option value="">Todas Prioridades</option>
                         <option value="pouco importante">Pouco Importante</option>
                         <option value="importante">Importante</option>
                         <option value="muito importante">Muito Importante</option>
                     </select>
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-1 pointer-events-none">
+                        <svg
+                            className="w-4 h-4 text-gray-500"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M19 9l-7 7-7-7"
+                            />
+                        </svg>
+                    </div>
+                </div>
+
+                <div className="relative">
                     <input
                         type="date"
                         value={filters.due_date}
                         onChange={e => setFilters({ ...filters, due_date: e.target.value })}
-                        className="p-1 border rounded"
+                        className="px-4 py-2 border rounded bg-white text-gray-700 appearance-none"
                     />
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+
+                    </div>
                 </div>
             </div>
+        </div>
+
         </div>
 
         <h1 className="text-6xl font-bold text-white text-center mt-6">To-do List</h1>
@@ -279,9 +335,9 @@ export const Tarefas = () => {
                             onChange={e => setNewTask({ ...newTask, status: e.target.value })}
                             className="w-full p-2 border rounded"
                         >
-                            <option value="não iniciado">Não Iniciado</option>
+                            <option value="pendente">Pendente</option>
                             <option value="em progresso">Em Progresso</option>
-                            <option value="finalizado">Finalizado</option>
+                            <option value="finalizada">Finalizada</option>
                         </select>
                         <select
                             value={newTask.priority}
@@ -296,13 +352,6 @@ export const Tarefas = () => {
                             type="date"
                             value={newTask.due_date}
                             onChange={e => setNewTask({ ...newTask, due_date: e.target.value })}
-                            className="w-full p-2 border rounded"
-                        />
-                        <input
-                            type="text"
-                            placeholder="Membros"
-                            value={newTask.members}
-                            onChange={e => setNewTask({ ...newTask, members: e.target.value })}
                             className="w-full p-2 border rounded"
                         />
                         <div className="mt-4 flex justify-between">
@@ -343,14 +392,19 @@ export const Tarefas = () => {
         <li 
             key={tarefa._id} 
             className={`p-4 rounded-md shadow-sm flex justify-between items-center ${containerClass}`}
+            onClick={() => {
+                if (tarefa.status === 'pendente') {
+                    handleStatusChange(tarefa._id, 'em progresso');
+                }
+            }}
         >
             <div>
-                <h1 className="font-bold text-3xl">{tarefa.title}</h1>
+                <h1 className="font-bold text-2xl">{tarefa.title}</h1>
                 <p className="font-semibold">
                 {
-                    tarefa.status === 'não iniciado' ? 'A tarefa ainda não foi iniciada' :
+                    tarefa.status === 'pendente' ? 'A tarefa ainda não foi iniciada' :
                     tarefa.status === 'em progresso' ? 'A tarefa está em processo' :
-                    tarefa.status === 'finalizado' ? 'A tarefa foi finalizada' :
+                    tarefa.status === 'finalizada' ? 'A tarefa foi finalizada' :
                     'Status desconhecido'
                 }
                 </p>
@@ -367,15 +421,14 @@ export const Tarefas = () => {
                         ? `Faltam ${daysRemaining} dias para o vencimento` 
                         : `Atrasado em ${Math.abs(daysRemaining)} dias`}
                 </p>
-                <p>Membros: {tarefa.members.join(', ')}</p>
             </div>
             <div className="flex items-center relative">
             <div className="checkbox-container">
                     <input
                         type="checkbox"
-                        checked={tarefa.status === 'finalizado'}
+                        checked={tarefa.status === 'finalizada'}
                         onChange={() => {
-                            const newStatus = tarefa.status === 'finalizado' ? 'em progresso' : 'finalizado';
+                            const newStatus = tarefa.status === 'finalizada' ? 'em progresso' : 'finalizada';
                             handleStatusChange(tarefa._id, newStatus);
                         }}
                         id={`checkbox-${tarefa._id}`}

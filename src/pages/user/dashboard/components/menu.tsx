@@ -4,7 +4,7 @@ import styled from "styled-components";
 export const Menu = () => {
     return (
         <MenuStyles>
-            <h1>Menu</h1>
+            <h1>Taskify</h1>
             {menuItems.map((item, index) => {
                 return (
                     <MenuItem key={index} href={item.href}>
@@ -26,7 +26,7 @@ const MenuStyles = styled.div`
     border-right: 1px solid #ddd;
 
     h1 {
-        font-size: 24px;
+        font-size: 30px;
         margin-bottom: 20px;
         font-weight: bold; 
         color: white;
@@ -55,5 +55,5 @@ const IconWrapper = styled.span`
 `;
 
 const Label = styled.span`
-    font-size: 16px;
+    font-size: 18px;
 `;

@@ -2,7 +2,6 @@ import { Route, Routes } from 'react-router-dom';
 import { Header } from './components/header';
 import { Menu } from './components/menu';
 import styled from 'styled-components';
-import { Projeto } from './nested/projetos/projetospage';
 import { Tarefas } from './nested/tarefas/tarefaspage';
 import { Graficos } from './nested/graficos/graficos.page'; 
 
@@ -12,9 +11,6 @@ export const Dashboard = () => {
         <DashboardStyles>
             <Header/>
             <Menu/>
-            <Routes>
-                <Route path="projetos" element={<Projeto />}/>
-            </Routes>
             <Routes>
                 <Route path="tarefas" element={<Tarefas />}/>
             </Routes>
