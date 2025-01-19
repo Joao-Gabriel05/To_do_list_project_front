@@ -19,6 +19,11 @@ export async function getasksRequest<T>(route: string, method: string = 'GET', b
     try {
         const response = await fetch(apiBaseUrl + route, options);
 
+        // Se o status da resposta for 204 No Content, retorna uma lista vazia
+        if (response.status === 204) {
+            return [] as T; // Retorna uma lista vazia
+        }
+
         // Valida se a resposta foi bem-sucedida
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status} - ${response.statusText}`);
@@ -31,6 +36,7 @@ export async function getasksRequest<T>(route: string, method: string = 'GET', b
         throw error; // Repropaga o erro para o chamador lidar
     }
 }
+
 
 
 export async function postTaskRequest<T>(route: string, body: any): Promise<T> {

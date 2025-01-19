@@ -119,8 +119,16 @@ export const Tarefas = () => {
             const result = await deleteTaskRequest('/director/delete-task', taskId);
             
             if (result) {
+                // A API retornou sucesso, agora vamos buscar as tarefas atualizadas
                 const tarefas = await getasksRequest<Tarefa[]>('/director/get-task');
-                setTarefas(tarefas);
+                
+                // Se a lista estiver vazia após a exclusão, definimos um array vazio
+                if (tarefas.length === 0) {
+                    setTarefas([]);
+                } else {
+                    setTarefas(tarefas);
+                }
+                
                 toast.success('Tarefa deletada com sucesso!');
             } else {
                 toast.error('Erro ao deletar a tarefa');
@@ -130,6 +138,7 @@ export const Tarefas = () => {
             console.error('Erro ao deletar a tarefa:', error);
         }
     };
+    
     
 
     const handleTaskClick = (tarefa: Tarefa) => {
